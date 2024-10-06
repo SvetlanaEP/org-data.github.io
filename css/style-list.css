@@ -1581,6 +1581,11 @@ flex-direction: column;
 
 .popup-form__button--cancel {
     background-color: #CACACA;
+    color: white;
+}
+
+.popup-form__button--cancel:hover {
+    background-color: red;
 }
 
 .clear-icon {
