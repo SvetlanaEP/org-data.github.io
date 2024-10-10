@@ -1199,12 +1199,10 @@ function showSuggestions(columnIndex, inputIndex) {
             suggestionsList.style.position = 'absolute';
             suggestionsList.style.bottom = `${input.offsetHeight}px`;
             suggestionsList.style.top = 'auto';
-            suggestionsList.style.borderBottom = 'none'
         } else {
             suggestionsList.style.position = 'absolute';
             suggestionsList.style.top = `${input.offsetHeight}px`;
             suggestionsList.style.bottom = 'auto';
-            suggestionsList.style.borderTop = 'none'
         }
 
         suggestionsList.style.display = 'block';
