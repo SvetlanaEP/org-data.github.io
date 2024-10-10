@@ -1068,6 +1068,8 @@ function showSuggestions(columnIndex, inputIndex) {
         document.body.classList.remove('modal-open');
         parentCell.style.zIndex = '1';
         parentCell.querySelector('textarea').style.border = 'none';
+
+        document.removeEventListener('click', handleOutsideClick);
     }
 
     inputClear.addEventListener('click', () => {
@@ -1075,12 +1077,11 @@ function showSuggestions(columnIndex, inputIndex) {
         closeSuggestions()
     })
 
-    // Закрытие списка подсказок при клике вне области
-    document.addEventListener('click', (event) => {
+    function handleOutsideClick(event) {
         if (!parentCell.contains(event.target)) {
             closeSuggestions();
         }
-    });
+    }
 
     if (filter.length === 0) {
         closeSuggestions()
@@ -1224,6 +1225,8 @@ function showSuggestions(columnIndex, inputIndex) {
 
             createSuggestionsList()
         }
+
+    document.addEventListener('click', handleOutsideClick);
 }
 
 function secondShowSuggestions(index, secondIndex) {
