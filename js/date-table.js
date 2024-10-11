@@ -1033,16 +1033,10 @@ function showSuggestions(columnIndex, inputIndex) {
     const input = document.querySelectorAll('.search-input')[inputIndex];
     const filter = input.value.toLowerCase();
 
-    const isTablet = window.matchMedia('(min-width: 640px)').matches
-    let parentCell;
-    if (isTablet) {
-        parentCell = input.closest('th')
-    } else {
-        parentCell = input.closest('.data-item__item--search-mobile')
-    }
+    const isTablet = window.matchMedia('(min-width: 640px)').matches;
+    let parentCell = isTablet ? input.closest('th') : input.closest('.data-item__item--search-mobile');
 
-    const inputClear = parentCell.querySelector('.search-icons__del')
-
+    const inputClear = parentCell.querySelector('.search-icons__del');
     const suggestionsList = columnIndex === 0 ?
         parentCell.querySelector('.name-suggestions-list') :
         parentCell.querySelector('.abbreviation-suggestions-list');
@@ -1053,14 +1047,6 @@ function showSuggestions(columnIndex, inputIndex) {
         closeSuggestions();
     });
 
-    // Функция для проверки и показа подсказок при наличии текста в инпуте
-    input.addEventListener('focus', () => {
-        if (input.value.length > 0) {
-            // Снова вызываем создание списка подсказок
-            secondShowSuggestions(columnIndex, inputIndex)
-        }
-    });
-
     // Функция для закрытия списка подсказок
     function closeSuggestions() {
         suggestionsList.style.display = 'none';
@@ -1069,37 +1055,30 @@ function showSuggestions(columnIndex, inputIndex) {
         parentCell.style.zIndex = '1';
         parentCell.querySelector('textarea').style.border = 'none';
 
+        // Убираем обработчик клика на документ
         document.removeEventListener('click', handleOutsideClick);
     }
 
-    inputClear.addEventListener('click', () => {
-        suggestionsList.style.display = 'none';
-        closeSuggestions()
-    })
-
+    // Функция для обработки клика вне области подсказок
     function handleOutsideClick(event) {
         if (!parentCell.contains(event.target)) {
             closeSuggestions();
         }
     }
 
+    input.addEventListener('focus', () => {
+        if (input.value.length > 0) {
+            secondShowSuggestions(columnIndex, inputIndex)
+        }
+    });
+
     if (filter.length === 0) {
-        closeSuggestions()
+        closeSuggestions();
         return;
     }
 
-    /* Фильтр данных для подсказок */
-
     const filteredData = dataList.filter(row => {
-        let textToCheck;
-
-        if (columnIndex === 0) {
-            textToCheck = row.name.toLowerCase();
-            closeSuggestions()
-        } else if (columnIndex === 1) {
-            textToCheck = row.abbreviation.toLowerCase();
-        }
-
+        let textToCheck = columnIndex === 0 ? row.name.toLowerCase() : row.abbreviation.toLowerCase();
         return textToCheck.startsWith(filter);
     });
 
@@ -1107,127 +1086,88 @@ function showSuggestions(columnIndex, inputIndex) {
         return columnIndex === 0 ? row.name : row.abbreviation;
     })));
 
-
-    // Доступное пространство сверху и снизу
     const inputRect = input.getBoundingClientRect();
-    const spaceAbove = inputRect.top;
     const spaceBelow = window.innerHeight - inputRect.bottom;
+console.log(inputRect)
+    let availableHeight = spaceBelow;
 
-    let availableHeight;
-    let displayAbove = false;
-    availableHeight = spaceBelow
 
+    const maxSuggestions = Math.min(10, uniqueSuggestions.length);
     let totalHeight = 0;
     let finalSuggestionsCount = 0;
-    const maxSuggestions = Math.min(10, uniqueSuggestions.length);
 
     function createSuggestionsList() {
-
         const selectOptionLi = document.createElement('li');
-
-        // Проверяем, есть ли подходящие подсказки
-        if (uniqueSuggestions.length === 0) {
-            return;
-        } else {
-            selectOptionLi.textContent = 'Выберите вариант или продолжите ввод';
-        }
+        selectOptionLi.textContent = uniqueSuggestions.length === 0 ? 'Совпадений нет' : 'Выберите вариант или продолжите ввод';
         selectOptionLi.style.fontSize = '12px';
         selectOptionLi.style.display = 'block';
         selectOptionLi.style.visibility = 'hidden';
         suggestionsList.appendChild(selectOptionLi);
 
-
         for (let i = 0; i < maxSuggestions; i++) {
-
-            // Временный элемент для определения высоты строки
             const tempLi = document.createElement('li');
-            tempLi.style.display = 'block'
+            tempLi.style.display = 'block';
             tempLi.style.visibility = 'hidden';
-            tempLi.innerHTML = highlightMatchingText(uniqueSuggestions[i], filter)
+            tempLi.innerHTML = highlightMatchingText(uniqueSuggestions[i], filter);
             suggestionsList.appendChild(tempLi);
         }
 
-        // Теперь измеряем их высоту внутри requestAnimationFrame
         requestAnimationFrame(() => {
             const suggestionItems = suggestionsList.querySelectorAll('li');
             suggestionItems.forEach((li, index) => {
                 const suggestionHeight = li.getBoundingClientRect().height;
-
-                // Проверяем, помещается ли элемент в доступное пространство
-                if (totalHeight + suggestionHeight <= availableHeight) {
-                    if (index === 0) {
-                        totalHeight += suggestionHeight;
-                    } else {
-                        totalHeight += suggestionHeight;
-                        finalSuggestionsCount++;
-                    }
-
-
+                if (totalHeight + suggestionHeight <= window.innerHeight - inputRect.height) {
+                    totalHeight += suggestionHeight;
+                    finalSuggestionsCount++;
+                    li.style.visibility = 'visible';
+                    li.onclick = () => {
+                        input.value = li.textContent;
+                        filterTable(columnIndex, inputIndex);
+                        closeSuggestions();
+                    };
                 } else {
-                    // Если больше не влезает, удаляем оставшиеся элементы
-                    if (index >= finalSuggestionsCount) {
-                        li.remove();
-                    }
+                    li.remove();
                 }
             });
-            // Теперь все оставшиеся элементы видимы
-            suggestionItems.forEach((li, index) => {
-                if (index < finalSuggestionsCount + 1) {
-                    if (index === 0) {
-                        li.style.visibility = 'visible';
-                    } else {
-                        li.style.visibility = 'visible';
-                        li.onclick = () => {
-                            input.value = li.textContent;
-
-                            filterTable(columnIndex, inputIndex)
-
-                            suggestionsList.style.display = 'none'
-                            document.getElementById('overlay').style.display = 'none';
-                            document.body.classList.remove('modal-open');
-                            parentCell.style.zIndex = '1'
-                            parentCell.querySelector('textarea').style.border = 'none'
-                        }
-                    }
-                }
-
-            });
-
         });
 
-        // Настройка позиции списка подсказок
-        if (displayAbove) {
-            suggestionsList.style.position = 'absolute';
-            suggestionsList.style.bottom = `${input.offsetHeight}px`;
-            suggestionsList.style.top = 'auto';
-        } else {
-            suggestionsList.style.position = 'absolute';
-            suggestionsList.style.top = `${input.offsetHeight}px`;
-            suggestionsList.style.bottom = 'auto';
-        }
-
+        suggestionsList.style.position = 'absolute';
+        suggestionsList.style.top = `auto`;
         suggestionsList.style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
         document.body.classList.add('modal-open');
         parentCell.style.zIndex = '20';
         parentCell.querySelector('textarea').style.border = '2px solid #00B0D9';
+
+        // Добавляем обработчик клика на документ
+        document.addEventListener('click', handleOutsideClick);
+
+        // Проверка, помещаются ли подсказки в экран
+        adjustScrollForSuggestions();
     }
 
-    createSuggestionsList()
+    // Функция для прокрутки страницы вверх, если подсказки не умещаются
+    function adjustScrollForSuggestions() {
+        const suggestionsRect = suggestionsList.getBoundingClientRect();
+        const inputRect = input.getBoundingClientRect();
+        const spaceBelowInput = window.innerHeight - inputRect.bottom;
 
-        if (finalSuggestionsCount + 1 < uniqueSuggestions.length && spaceAbove > spaceBelow) {
-            displayAbove = true;
-            availableHeight = spaceAbove
-            totalHeight = 0;
-            finalSuggestionsCount = 0;
+        // Если подсказки не помещаются полностью в видимую часть
+        if (suggestionsRect.height > spaceBelowInput) {
+            // Рассчитываем, сколько нужно прокрутить, чтобы верхняя часть инпута была видна в верхней части окна
+            const scrollAmount = inputRect.top - 10; // Немного отступаем от верхней части окна (10px)
 
-            suggestionsList.innerHTML = '';
-
-            createSuggestionsList()
+            // Прокручиваем страницу так, чтобы инпут был наверху
+            window.scrollBy({
+                top: scrollAmount, // Прокрутить на это количество пикселей
+                behavior: 'smooth' // Плавная прокрутка
+            });
         }
+    }
 
-    document.addEventListener('click', handleOutsideClick);
+    createSuggestionsList();
 }
+
 
 function secondShowSuggestions(index, secondIndex) {
     showSuggestions(index, secondIndex)
