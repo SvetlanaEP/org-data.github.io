@@ -1,7 +1,10 @@
 /*общие */
-
+body {
+    overflow: hidden;
+}
 .body-container {
-    overflow: scroll; /* или auto */
+    overflow-y: auto;
+    max-height: 100vh;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE и Edge */
 }
