@@ -1,5 +1,16 @@
 /*общие */
 
+.body-container {
+    overflow: scroll; /* или auto */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE и Edge */
+}
+
+/* Для Chrome, Safari и других WebKit браузеров */
+.body-container::-webkit-scrollbar {
+    display: none;
+}
+
 .visually-hidden {
     position: absolute;
 
