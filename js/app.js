@@ -197,26 +197,6 @@ importCancelButton.addEventListener('click', () => {
     closePopup(importForm)
 })
 
-// Открыть форму для экспорта
-/*
-const exportForm = document.querySelector('.export-data')
-const exportOpenPopup = document.querySelector('#exportButton')
-const exportCloseButton = exportForm.querySelector('.popup-form__close')
-const exportCancelButton = importForm.querySelector('.popup-form__button--cancel')
-
-exportOpenPopup.addEventListener('click', () => {
-    openPopup(exportForm)
-})
-
-exportCloseButton.addEventListener('click', () => {
-    closePopup(exportForm)
-})
-
-exportCancelButton.addEventListener('click', () => {
-    closePopup(exportForm)
-})
-*/
-
 
 // Про иконку-крестик в инпутах
 

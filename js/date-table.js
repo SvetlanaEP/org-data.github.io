@@ -1092,7 +1092,7 @@ function showSuggestions(columnIndex, inputIndex) {
 
     const inputRect = input.getBoundingClientRect();
     const spaceBelow = window.innerHeight - inputRect.bottom;
-console.log(inputRect)
+
     let availableHeight = spaceBelow;
 
 
@@ -1133,6 +1133,10 @@ console.log(inputRect)
                             input.value = li.textContent;
                             filterTable(columnIndex, inputIndex);
                             closeSuggestions();
+
+                            // Вызов функций для изменения высоты элементов
+                            autoResizeTextarea(input, input.scrollHeight);
+                            adjustTableRowAndLabelHeight(input);
                         };
                     }
                 } else {
@@ -1230,18 +1234,22 @@ for (let i=0; i<tableInput.length; i++) {
 
 
     tableClearIcon[i].addEventListener('click', function() {
-        tableInput[i].value = '';
+
+console.log(tableClearIcon[i].closest('.popup-form__input-wrapper').querySelector('.search-input'))
+
+        tableClearIcon[i].closest('.popup-form__input-wrapper').querySelector('.search-input').value = '';
+
         tableClearIcon[i].style.display = 'none';
         tableSearchIcon[i].style.display = 'block'
         tableInput[i].classList.add('search-input--focus')
         tableInput[i].closest('label').style.border = '2px solid #00B0D9';
-        tableInput[i].focus(); // Вернем фокус на инпут после очистки
-        document.querySelectorAll('.suggestions-list')[i].style.display = 'none'; /* Убрать окно с подсказками */
+        tableInput[i].focus();
+        document.querySelectorAll('.suggestions-list')[i].style.display = 'none';
 
 
         clearTable()
         generateTable(dataList)
-    });
+    })
 }
 
 // Открыть форму для редактирования
@@ -1420,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function() {
     tableData.addEventListener('click', function (evt) {
         const deleteButton = evt.target.closest('.data-item__button--del')
         const editButton = evt.target.closest('.data-item__button--edit')
-
+console.log(deleteButton)
         if (editButton) {
             currentRow = editButton.closest('tr');
             idCurrentRow = parseInt(currentRow.dataset.id, 10);
@@ -1840,58 +1848,78 @@ textareaAll.forEach(textarea => {
     });
 })
 
-// увеличение высоты текстареа в табл
-    const textareaSearchAll = document.querySelectorAll('.search-input');
+// редактирую тут
 
+// Получаем все элементы textarea
+const textareaSearchAll = document.querySelectorAll('.search-input');
 
-    textareaSearchAll.forEach(textareaSearch => {
-        // Сохранение начальной (минимальной) высоты при загрузке страницы
-        const initialHeight = textareaSearch.scrollHeight;
+textareaSearchAll.forEach(textareaSearch => {
+    // Сохраняем начальную (минимальную) высоту при загрузке страницы
+    const initialHeight = textareaSearch.scrollHeight;
 
-        console.log(textareaSearchAll, initialHeight)
+    const textareaSearchDel = textareaSearch.closest('label').querySelector('.search-icons__del');
 
-        const textareaSearchDel = textareaSearch.closest('label').querySelector('.search-icons__del')
+    // Настраиваем высоту textarea при загрузке страницы
+    autoResizeTextarea(textareaSearch, initialHeight);
 
-        autoResizeTextarea(textareaSearch, initialHeight)
+    textareaSearchDel.addEventListener('click', () => {
+        textareaSearch.value = '';
+        textareaSearch.style.height = `${initialHeight}px`;
+        adjustTableRowAndLabelHeight(textareaSearch);
 
+        // Очищаем значения всех элементов с иконкой удаления
+   /*     document.querySelectorAll('.search-icons__del').forEach(del => {
+            del.closest('label').querySelector('.input-item').value = '';
+        });*/
+    });
 
-        textareaSearchDel.addEventListener('click', () => {
-            textareaSearch.ariaValueMax = ''
-            textareaSearch.focus()
-            textareaSearch.style.height = `${initialHeight}px`;
+    // Привязываем событие ввода для динамического изменения высоты
+    textareaSearch.addEventListener('input', () => {
+        autoResizeTextarea(textareaSearch, initialHeight);
+        adjustTableRowAndLabelHeight(textareaSearch);
+    });
 
-            document.querySelectorAll('.search-icons__del').forEach(del => {
-                del.closest('label').querySelector('.input-item').value = '';
-            })
-        })
+    // Настраиваем высоту при загрузке страницы
+    window.addEventListener('load', () => {
+        autoResizeTextarea(textareaSearch, initialHeight);
+        adjustTableRowAndLabelHeight(textareaSearch);
+    });
+});
 
-// Привязываем событие ввода
-        textareaSearch.addEventListener('input', () => {
-            autoResizeTextarea(textareaSearch, initialHeight)
-        });
+// Функция для автоматического изменения высоты textarea
+function autoResizeTextarea(item, initialHeight) {
+    // Сбрасываем высоту перед расчетом новой высоты
+    item.style.height = `${initialHeight}px`;
 
-// Можно также вызвать функцию при загрузке, чтобы подстроить высоту, если текст уже есть
-        window.addEventListener('load', () => {
-            autoResizeTextarea(textareaSearch)
-        });
-    })
-
-
-// Функция автоизменения высоты
-function autoResizeTextarea(item, height) {
-
-    // Сбросить высоту перед расчетом
-    item.style.height = `${height}px`;
-
-    // Если поле пустое, возвращаем минимальную высоту (начальную высоту)
     if (item.value.trim() === '') {
-        item.style.height = `${height}px`;
+        item.style.height = `${initialHeight}px`;
     } else {
-        // Устанавливаем высоту в зависимости от контента
         item.style.height = `${item.scrollHeight}px`;
     }
-
 }
+
+// Функция для изменения высоты строки таблицы и лейбла в зависимости от высоты textarea
+function adjustTableRowAndLabelHeight(textarea) {
+    const row = textarea.closest('tr');
+    const label = textarea.closest('label');
+
+    const newHeight = `${textarea.scrollHeight}px`;
+
+    // Изменяем высоту строки таблицы
+
+
+    // Изменяем высоту лейбла
+    label.style.height = newHeight;
+}
+
+
+
+
+
+
+
+
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
