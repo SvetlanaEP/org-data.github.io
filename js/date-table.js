@@ -1734,7 +1734,7 @@ let duplicate;
         const seconds = String(now.getSeconds()).padStart(2, '0');
 
         // Формируем название файла
-        return `Сокращенные юридические формы ${day}.${month}.${year} ${hours}_${minutes}_${seconds}.xlsx`;
+        return `Сокращенные юридические формы ${day}.${month}.${year} ${hours}_${minutes}_${seconds}.xls`;
     }
 
     // Открытие попапа и генерация имени файла
@@ -1785,7 +1785,7 @@ let duplicate;
     });
 
 
-    // Функция для создания и скачивания файла
+  /*  // Функция для создания и скачивания файла
     function downloadFile(filename, content) {
         const blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const link = document.createElement('a');
@@ -1798,14 +1798,74 @@ let duplicate;
 
         // Освобождаем память
         URL.revokeObjectURL(link.href);
-    }
+    }*/
 
-    // Обработчик для кнопки выгрузки файла
+ /*   // Обработчик для кнопки выгрузки файла
     downloadButton.addEventListener('click', function () {
         const filename = filenameInput.value;
         const fileContent = "Пример данных для файла"; // Здесь должен быть контент файла, сгенерированный на основе данных
 
         downloadFile(filename, fileContent)
+        closeExport(); // Закрываем попап после выгрузки
+    });*/
+
+    // Функция для создания и скачивания CSV-файла
+    function downloadXLS(filename, tableSelector) {
+        const table = document.querySelector(tableSelector);
+        let htmlContent = '<table border="1">';
+
+        // Проходим по строкам таблицы
+        for (let row of table.rows) {
+
+            if (row.classList.contains('data-item__only-mobile')) {
+                continue; // Переходим к следующей строке
+            }
+            htmlContent += '<tr>';
+
+            for (let cell of row.cells) {
+                // Пропускаем ячейки, которые не имеют класс 'export-column'
+                if (!cell.classList.contains('export-column')) {
+                    continue; // Переходим к следующей ячейке
+                }
+
+                // Клонируем содержимое ячейки, чтобы не изменять таблицу на странице
+                const clonedCell = cell.cloneNode(true);
+
+                // Удаляем все span с классом 'data-item__only-mobile' в клонированной ячейке
+                const spans = clonedCell.getElementsByTagName('span');
+                for (let span of spans) {
+                    if (span.classList.contains('data-item__only-mobile')) {
+                        span.remove(); // Удаляем этот span только в копии
+                    }
+                }
+
+                // Добавляем оставшийся контент клонированной ячейки
+                htmlContent += `<td>${clonedCell.textContent.trim()}</td>`;
+
+            }
+            htmlContent += '</tr>';
+        }
+        htmlContent += '</table>';
+
+        // Создаем Blob для скачивания
+        const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+
+        // Автоматически кликаем на ссылку для открытия диалога сохранения
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Освобождаем память
+        URL.revokeObjectURL(link.href);
+    }
+
+// Обработчик для кнопки выгрузки файла
+    downloadButton.addEventListener('click', function () {
+        const filename = filenameInput.value || 'table-export.xls';
+        downloadXLS(filename, 'table'); // Замените 'table' на нужный селектор таблицы
         closeExport(); // Закрываем попап после выгрузки
     });
 
@@ -1848,7 +1908,6 @@ textareaAll.forEach(textarea => {
     });
 })
 
-// редактирую тут
 
 // Получаем все элементы textarea
 const textareaSearchAll = document.querySelectorAll('.search-input');
@@ -1911,15 +1970,6 @@ function adjustTableRowAndLabelHeight(textarea) {
     // Изменяем высоту лейбла
     label.style.height = newHeight;
 }
-
-
-
-
-
-
-
-
-
 
 
 document.addEventListener('DOMContentLoaded', () => {
