@@ -294,6 +294,10 @@ body.modal-open {
     border: none;
 }
 
+.data-item__only-mobile {
+    font-size: 14px;
+}
+
 .soft-bar__button:not(.soft-bar__button--search) {
     height: 54px;
 
